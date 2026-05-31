@@ -345,6 +345,10 @@ export class GhostBlocks implements INodeType {
 
 	methods = {
 		credentialTest: {
+			// n8n's ICredentialTestFunctions.helpers exposes only the deprecated `request`
+			// (which the verification scan rejects). So we can't make an HTTP call here.
+			// Instead we validate the admin key locally — if the JWT can be signed, the key
+			// is well-formed. Real authentication is verified on the first node execution.
 			async ghostBlocksApiTest(
 				this: ICredentialTestFunctions,
 				credential: ICredentialsDecrypted,
@@ -352,34 +356,26 @@ export class GhostBlocks implements INodeType {
 				const data = credential.data as ICredentialDataDecryptedObject;
 				const url = (data?.url as string) || '';
 				const adminKey = (data?.adminKey as string) || '';
-				const apiVersion = (data?.apiVersion as string) || 'v5.0';
 
-				try {
-					const token = generateGhostJwt(adminKey);
-					// ICredentialTestFunctions.helpers types only `request`, but n8n exposes
-					// `httpRequest` at runtime. Cast through unknown to avoid the deprecation
-					// lint rule and TS error.
-					const helpers = this.helpers as unknown as {
-						httpRequest: (opts: {
-							method: string;
-							url: string;
-							headers: Record<string, string>;
-							json?: boolean;
-						}) => Promise<unknown>;
+				if (!url) {
+					return { status: 'Error', message: 'Ghost URL is required' };
+				}
+				if (!adminKey.includes(':')) {
+					return {
+						status: 'Error',
+						message: 'Admin API Key must be in the format "{id}:{secret}"',
 					};
-					await helpers.httpRequest({
-						method: 'GET',
-						url: `${url.replace(/\/+$/, '')}/ghost/api/admin/site/`,
-						headers: {
-							Authorization: `Ghost ${token}`,
-							'Accept-Version': apiVersion,
-						},
-						json: true,
-					});
-					return { status: 'OK', message: 'Authentication successful' };
+				}
+				try {
+					generateGhostJwt(adminKey);
+					return {
+						status: 'OK',
+						message:
+							'Credentials look valid. Authentication will be verified on the first node run.',
+					};
 				} catch (error) {
 					const message = error instanceof Error ? error.message : String(error);
-					return { status: 'Error', message: `Authentication failed: ${message}` };
+					return { status: 'Error', message: `Invalid Admin API Key: ${message}` };
 				}
 			},
 		},
