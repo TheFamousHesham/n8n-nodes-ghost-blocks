@@ -2,12 +2,8 @@
 // Uses only `node:crypto` and n8n's http helpers (no fs, no fetch, no deps).
 
 import {
-	ICredentialDataDecryptedObject,
-	ICredentialTestFunctions,
-	ICredentialsDecrypted,
 	IDataObject,
 	IExecuteFunctions,
-	INodeCredentialTestResult,
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
@@ -45,7 +41,7 @@ export class GhostBlocks implements INodeType {
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
 		usableAsTool: true,
-		credentials: [{ name: 'ghostBlocksApi', required: true, testedBy: 'ghostBlocksApiTest' }],
+		credentials: [{ name: 'ghostBlocksApi', required: true }],
 		properties: [
 			{
 				displayName: 'Resource',
@@ -341,44 +337,6 @@ export class GhostBlocks implements INodeType {
 				default: 'test',
 			},
 		],
-	};
-
-	methods = {
-		credentialTest: {
-			// n8n's ICredentialTestFunctions.helpers exposes only the deprecated `request`
-			// (which the verification scan rejects). So we can't make an HTTP call here.
-			// Instead we validate the admin key locally — if the JWT can be signed, the key
-			// is well-formed. Real authentication is verified on the first node execution.
-			async ghostBlocksApiTest(
-				this: ICredentialTestFunctions,
-				credential: ICredentialsDecrypted,
-			): Promise<INodeCredentialTestResult> {
-				const data = credential.data as ICredentialDataDecryptedObject;
-				const url = (data?.url as string) || '';
-				const adminKey = (data?.adminKey as string) || '';
-
-				if (!url) {
-					return { status: 'Error', message: 'Ghost URL is required' };
-				}
-				if (!adminKey.includes(':')) {
-					return {
-						status: 'Error',
-						message: 'Admin API Key must be in the format "{id}:{secret}"',
-					};
-				}
-				try {
-					generateGhostJwt(adminKey);
-					return {
-						status: 'OK',
-						message:
-							'Credentials look valid. Authentication will be verified on the first node run.',
-					};
-				} catch (error) {
-					const message = error instanceof Error ? error.message : String(error);
-					return { status: 'Error', message: `Invalid Admin API Key: ${message}` };
-				}
-			},
-		},
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
