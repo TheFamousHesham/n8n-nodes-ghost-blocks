@@ -1,0 +1,59 @@
+{
+  "name": "n8n-nodes-ghost-blocks",
+  "version": "0.5.0",
+  "description": "n8n community node for publishing to Ghost CMS using simple, flat content blocks. Verified for n8n Cloud. Builds Lexical documents and handles JWT auth internally.",
+  "keywords": [
+    "n8n-community-node-package",
+    "n8n",
+    "ghost",
+    "cms",
+    "blog",
+    "publishing",
+    "lexical",
+    "content-blocks"
+  ],
+  "homepage": "https://github.com/TheFamousHesham/n8n-nodes-ghost-blocks",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheFamousHesham/n8n-nodes-ghost-blocks.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TheFamousHesham/n8n-nodes-ghost-blocks/issues"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Hesham",
+    "email": "hesham@betterbrainlab.org"
+  },
+  "scripts": {
+    "build": "n8n-node build",
+    "build:watch": "tsc --watch",
+    "dev": "n8n-node dev",
+    "lint": "n8n-node lint",
+    "lint:fix": "n8n-node lint --fix",
+    "release": "n8n-node release",
+    "prepublishOnly": "n8n-node prerelease"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "strict": true,
+    "credentials": [
+      "dist/credentials/GhostBlocksApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/GhostBlocks/GhostBlocks.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@n8n/node-cli": "*",
+    "eslint": "9.29.0",
+    "prettier": "3.8.3",
+    "typescript": "5.9.3"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  }
+}
